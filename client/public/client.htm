@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Eyecool人脸部署系统</title>
+  <style>
+    html, body {background-color: #000;height: 100%;margin: 0;}.dropup-content {display: none;}
+  </style>
+  <script type="text/javascript">
+//JASE.emit("data", 'hello');//term
+//JAUE.on("data", function(data) {})//socket
+  	var gui = null;
+  	var exec = null;
+  	var win = null;
+  	try {
+  		gui = require('nw.gui');
+//   		exec = require('child_process').exec;//exec('explorer.exe /select,"E:\\Workspace\\Java"')
+//   		gui.Shell.openExternal('https://www.baidu.com');
+  	  	win = gui.Window.get();
+// 		gui.Window.open('https://www.baidu.com', {}, function(new_win) {
+// 			new_win.maximize();
+// 		});
+//   	  win.enterFullscreen();
+  		win.maximize();
+  	}catch(e){
+  	}
+  </script>
+  <script type="text/javascript" src="/js/classie.js"></script>
+<!--   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> -->
+  <script type="text/javascript" src="/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<!--   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/split.js/1.3.5/split.min.js"></script> -->
+<!--   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/js/bootstrap.min.js"></script> -->
+<!--   <script type="text/javascript" src="https://unpkg.com/jquery.splitter/js/jquery.splitter.js"></script> -->
+<!--   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.4/vue.min.js"></script> -->
+  <script type="text/javascript" src="/ajax/libs/vue/2.6.4/vue.min.js"></script>
+<!--   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.15.6/min/vs/loader.js"></script> -->
+  <script type="text/javascript" src="/ajax/libs/monaco-editor/0.15.6/min/vs/loader.js"></script>
+  <script type="text/javascript" src="/js/modernizr.custom.js"></script>
+  <script type="text/javascript" src="/js/progressButton.js"></script>
+  <link rel="stylesheet" type="text/css" href="/webssh2.css" />
+  <link rel="stylesheet" type="text/css" href="/col-resize.css" />
+  <link rel="stylesheet" type="text/css" href="/css/component.css" />
+<!--   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/css/bootstrap.min.css" /> -->
+<!--   <link href="https://unpkg.com/jquery.splitter/css/jquery.splitter.css" rel="stylesheet"/> -->
+</head>
+<body>
+  <div class="box">
+    <div id="header">Eyecool人脸部署系统</div>
+    <div id="foo" class="row no-gutters" >
+	    <div id="col1" class="col" style="overflow-y: scroll;">
+	    	<div id="container1">
+	    		<p>1、环境配置：</p>
+	    		<ul>
+					<li>
+						需要sudo<input type="checkbox" id="checkbox" v-model="sudo_check">
+					</li>
+				</ul>
+	    		<p>2、上传文件：</p>
+	    		<ul>
+					<li>
+						<span v-for="(item, index) in item_list">
+							<button @click="progress_method(item.method, item.index, item.filepath, $event)" :method="item.method" class="progress-button" data-style="fill" data-horizontal>{{item.name}}</button> 
+						</span>
+<!-- 						<button @click="update(0)" method="update" class="progress-button" data-style="fill" data-horizontal>上传Docker安装</button> -->
+<!-- 						<button @click="download(6)" method="download" class="progress-button" data-style="fill" data-horizontal>下载申请授权文件</button> -->
+						<label for="upload-file">上传其他文件</label>
+						<input type="file" id="upload-file" @change="file_change($event)" hidden="hidden">
+						<div id="upload-file-list"></div>
+					</li>
+				</ul>
+				<p>3、执行命令：</p>
+	    		<ul>
+					<li>
+						<button @click="install_codemeter">安装Codemeter</button>
+						<button @click="install_docker">安装Docker</button>
+<!-- 						<button @click="demo">Demo</button> -->
+						<button @click="install_image">安装镜像</button>
+						<button @click="generate">运行镜像</button>
+						<label @click="analysis">命令反向解析</label>
+					</li>
+				</ul>
+				<p>4、解决问题：</p>
+	    		<ul>
+					<li>
+						<button @click="install_docker">磁盘满</button>
+						<button @click="install_docker">文件传输</button>
+						<button @click="install_docker">网络映射</button>
+						<button @click="install_docker">密钥</button>
+						<button @click="install_docker">Docker</button>
+					</li>
+				</ul>
+				<p>5、打开服务：</p>
+	    		<ul>
+					<li>
+						<button @click="href('http://' + ssh_server + ':' + golang_port + '/eye/library/' + library)">打开图库管理</button>
+						<button @click="href('http://' + ssh_server + ':' + video_port + '/ms/')">打开视频展示</button>
+					</li>
+				</ul>
+<!-- 				<input type="text" placeholder="enter text" v-model="value"> -->
+<!-- 				<p>{{ value }}</p> -->
+				<p>授权服务器IP：</p>
+				<ul>
+					<li><input type="text" placeholder="enter text" v-model="codemeter_server"></li>
+				</ul>
+				<p>运行级别：</p>
+				<ul>
+					<li><input type="text" placeholder="enter text" v-model="level"></li>
+				</ul>
+				<p>C++核心镜像版本：</p>
+				<ul>
+					<li><input type="text" placeholder="enter text"
+					v-model="cpp_image_version"></li>
+				</ul>
+				<p>Golang辅助镜像版本：</p>
+				<ul>
+					<li><input type="text" placeholder="enter text"
+					v-model="golang_image_version"></li>
+				</ul>
+				<p>人脸库后台端口：</p>
+				<ul>
+					<li><input type="text" placeholder="enter text" v-model="golang_port"></li>
+				</ul>
+				<p>后台密码：</p>
+				<ul>
+					<li><input type="text" placeholder="enter text" v-model="admin_pass"></li>
+				</ul>
+				<p>摄像头：</p>
+				<ul>
+					<li>
+						<button @click="progress_method('search_camera', 0, null)" method="search_camera" class="progress-button" data-style="fill" data-horizontal>扫描本地摄像头</button>
+					</li>
+					<li v-for="(device_info, index) in device_info_list">
+						IP： {{device_info.ipaddress}}
+						用户名： <input type="text" v-model="device_info.username"> 
+						密码： <input type="text" v-model="device_info.password">
+						<button @click="get_rtsp_url(device_info.xaddrs[0], device_info.username, device_info.password)">测试</button>
+						<button @click="add(index)">添加</button>
+					</li>
+				</ul>
+				<ul style="display: none;">
+					<li>
+						网段： <input type="text" placeholder="enter text" v-model="ip_segment">
+						<button @click="progress_method('search_net', 0, ip_segment)" method="search_net" class="progress-button" data-style="fill" data-horizontal>扫描网络</button>
+					</li>
+				</ul>
+				<ul>
+					<li v-for="(rtsp, index) in rtsp_urls">
+						高清： <input type="text" v-model="rtsp.value">
+						标清： <input type="text" v-model="rtsp.value2">
+						<button @click="rm(index)">-</button>
+					</li>
+					<button @click="add()">+</button>
+				</ul>
+				<p>视频比对库：</p>
+				<ul>
+					<li><input type="text" placeholder="enter text" v-model="library"></li>
+				</ul>
+				<p>视频显示端口：</p>
+				<ul>
+					<li><input type="text" placeholder="enter text" v-model="video_port"></li>
+				</ul>
+				<p>Docker工作目录：</p>
+				<ul>
+					<li><input type="text" placeholder="enter text" v-model="docker_home"></li>
+				</ul>
+				<p>门禁开关接口：</p>
+				<ul>
+					<li><input type="text" placeholder="enter text" v-model="door_monitors"></li>
+				</ul>
+				<p>数据库地址：</p>
+				<ul>
+					<li><input type="text" placeholder="enter text" v-model="db_host"></li>
+				</ul>
+				<p>数据库端口：</p>
+				<ul>
+					<li><input type="text" placeholder="enter text" v-model="db_port"></li>
+				</ul>
+				<p>数据库用户名：</p>
+				<ul>
+					<li><input type="text" placeholder="enter text" v-model="db_username"></li>
+				</ul>
+				<p>数据库密码：</p>
+				<ul>
+					<li><input type="text" placeholder="enter text" v-model="db_password"></li>
+				</ul>
+				<p>数据库名：</p>
+				<ul>
+					<li><input type="text" placeholder="enter text" v-model="database"></li>
+				</ul>
+				<p>人脸基础服务端口：</p>
+				<ul>
+					<li><input type="text" placeholder="enter text" v-model="face_server_port"></li>
+				</ul>
+				<p>人脸比对服务端口：</p>
+				<ul>
+					<li><input type="text" placeholder="enter text"
+					v-model="match_server_port"></li>
+				</ul>
+				<p>人脸画框服务端口：</p>
+				<ul>
+					<li><input type="text" placeholder="enter text"
+					v-model="snapshot_server_port"></li>
+				</ul>
+				<p>获取识别结果服务地址：</p>
+				<ul>
+					<li><input type="text" placeholder="enter text"
+					v-model="application_service_address"></li>
+				</ul>
+				<p>获取识别结果服务端口：</p>
+				<ul>
+					<li><input type="text" placeholder="enter text"
+					v-model="application_service_port"></li>
+				</ul>
+				<button @click="display()">{{displayTxt}}</button>
+				<div v-bind:style="styleObject">
+					<p>人脸基础服务线程数：</p>
+					<ul>
+						<li><input type="text" placeholder="enter text"
+						v-model="face_threads_number"></li>
+					</ul>
+					<p>人脸比对服务线程数：</p>
+					<ul>
+						<li><input type="text" placeholder="enter text"
+						v-model="match_threads_number"></li>
+					</ul>
+					<p>算法版本：</p>
+					<ul>
+						<li><input type="text" placeholder="enter text" v-model="algo_version"></li>
+					</ul>
+					<p>上一算法版本：</p>
+					<ul>
+						<li><input type="text" placeholder="enter text" v-model="old_algo_version"></li>
+					</ul>
+					<p>视频展示宽高：</p>
+					<ul>
+						<li><input type="text" placeholder="enter text" v-model="wh"></li>
+					</ul>
+					<p>视频展示质量：</p>
+					<ul>
+						<li><input type="text" placeholder="enter text" v-model="quality"></li>
+					</ul>
+					<p>公司镜像服务器：</p>
+					<ul>
+						<li><input type="text" placeholder="enter text" v-model="registry"></li>
+					</ul>
+					<p>cpp_ssh端口：</p>
+					<ul>
+						<li><input type="text" placeholder="enter text" v-model="cpp_ssh_port"></li>
+					</ul>
+					<p>golang_ssh端口：</p>
+					<ul>
+						<li><input type="text" placeholder="enter text" v-model="golang_ssh_port"></li>
+					</ul>
+					<p>golang后台服务调试端口：</p>
+					<ul>
+						<li><input type="text" placeholder="enter text" v-model="golang_debug_port"></li>
+					</ul>
+					<p>视频显示websocket端口：</p>
+					<ul>
+						<li><input type="text" placeholder="enter text" v-model="video_websocket_port"></li>
+					</ul>
+				</div>
+			</div>
+	    </div>
+<!-- 	    <div class="resizer first"></div> -->
+	    <div id="col2" class="col">
+	    	<div id="container" style="height: 100%; width: 100%;"></div>
+	    </div>
+<!-- 	    <div class="resizer second"></div> -->
+	    <div id="col3" class="col">
+	    	<div id="terminal-container" class="terminal"></div>
+	    </div>
+    </div>
+    <div id="bottomdiv">
+      <div class="dropup" id="menu">
+        <i class="fas fa-bars fa-fw"></i> Menu
+        <div id="dropupContent" class="dropup-content"></div>
+      </div>
+      <div id="footer"></div>
+      <div id="status"></div>
+    </div>
+  </div>
+	<script type="text/javascript" src="/webssh2.bundle.js"></script>
+	<script type="text/javascript" src="/client.js.js"></script>
+	<script type="text/javascript">
+	if(win != null) {
+// 		win.evalNWBin(null, '/client.bin');
+	}
+ 	</script>
+</body>
+</html>
