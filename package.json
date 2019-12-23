@@ -1,5 +1,5 @@
 {
-  "name": "nwjs-sdk-v0.36.1-win-x64",
+  "name": "docker-run-editor",
   "version": "1.0.0",
   "description": "",
   "main": "main.js",
@@ -9,6 +9,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "private": true,
   "dependencies": {
     "colors": "^1.4.0",
     "compression": "^1.7.4",
