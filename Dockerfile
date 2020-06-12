@@ -1,3 +1,4 @@
+#FROM land007/ubuntu-unity-novnc-node-all:latest
 FROM land007/ubuntu-node-all:latest
 
 MAINTAINER Yiqiu Jia <yiqiujia@hotmail.com>
