@@ -109,8 +109,8 @@
 
 .xterm .xterm-screen canvas {
     position: absolute;
-    left: 0;
-    top: 0;
+    left: 5px;
+    top: 2px;
 }
 
 .xterm .xterm-scroll-area {
