@@ -317,6 +317,12 @@ require([ 'vs/editor/editor.main' ], function() {
 //	    editor.getAction("editor.action.format").run();
 	});
 });
+//自适应宽度
+window.onresize = function () {
+    if (monacoEditor) {
+        monacoEditor.layout();
+    }
+};
 function ReCreateEditor(editContent) {
 	$("#container").children().remove();
 	require([ 'vs/editor/editor.main' ], function() {
