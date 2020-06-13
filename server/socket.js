@@ -180,12 +180,21 @@ module.exports = function socket (socket) {
       }
       // poc to log commands from client
       if (socket.request.session.ssh.serverlog.client) var dataBuffer
+      //TOCO
+      let socketok = false;
+      let cmds = socket.request.session.cmds;
+      if(cmds === undefined || cmds.length == 0) {
+    	  socketok = true;
+      }
       socket.on('data', function socketOnData (data) {
 //    	console.log(dataBuffer);
 //    	if(data.startsWith('download ') && data.length > 'download '.length) {
 //    		var download = data.substring('download '.length, data.length);
 //    		return;
 //    	}
+    	  if(!socketok) {
+    		  return;
+    	  }
         stream.write(data)
         // poc to log commands from client
         if (socket.request.session.ssh.serverlog.client) {
@@ -313,8 +322,39 @@ module.exports = function socket (socket) {
         SSHerror('SOCKET ERROR', err)
         conn.end()
       })
-
-      stream.on('data', function streamOnData (data) { socket.emit('data', data.toString('utf-8')) })
+      let timeout = null;
+      stream.on('data', function streamOnData (buffer) {
+    	  let data = buffer.toString('utf-8');
+    	  process.stdout.write(data);
+//    	  process.stdout.write(Buffer.from(data).toString('base64'));
+    	  let _data = data.replace(/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]/g, '');
+    	  if (_data.endsWith('$ ') || _data.endsWith('# ') || _data.endsWith('Password: ')) {//data.endsWith('\r\n') || 
+    		  timeout = setTimeout(function() {
+    			  process.stdout.write('结束');
+    			  if(!socketok) {
+    				  let cmd = cmds.shift();
+    				  if(cmd !== undefined) {
+    					  stream.write(cmd);
+    				  } else {
+        				  socketok = true;
+        				  process.stdout.write('socketok');
+        			  }
+//        			  if (_data.endsWith('$ ')) {
+//        				  stream.write('su - pi\n');
+//        			  } else if (_data.endsWith('Password: ')) {
+//        				  stream.write('1and419718\n');
+//        	    		  socketok = true;
+//        			  }
+    			  }
+    		  }, 1000);
+    	  } else {
+    		  if(timeout != null){
+        		  clearTimeout(timeout);
+        		  timeout = null;
+        	  }
+    	  }
+    	  socket.emit('data', data)
+      })
       stream.on('close', function streamOnClose (code, signal) {
         err = { message: ((code || signal) ? (((code) ? 'CODE: ' + code : '') + ((code && signal) ? ' ' : '') + ((signal) ? 'SIGNAL: ' + signal : '')) : undefined) }
         SSHerror('STREAM CLOSE', err)

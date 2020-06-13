@@ -42,62 +42,33 @@ app.get('/reauth', function (req, res, next) {
   var r = req.headers.referer || '/'
   res.status(401).send('<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0; url=' + r + '"></head><body bgcolor="#000"></body></html>')
 })
-//http://127.0.0.1:2222/ssh/host/192.168.1.241/port/22/user/pi/pass/xxx
-app.get('/ssh/host/:host?/port/:port?/user/:user?/pass/:pass?', function (req, res, next) {
-  res.sendFile(path.join(path.join(publicPath, 'client.htm')))
-  // capture, assign, and validated variables
-  req.session.ssh = {
-    host: (validator.isIP(req.params.host + '') && req.params.host) ||
-      (validator.isFQDN(req.params.host) && req.params.host) ||
-      (/^(([a-z]|[A-Z]|[0-9]|[!^(){}\-_~])+)?\w$/.test(req.params.host) &&
-      req.params.host) || config.ssh.host,
-//    port: (validator.isInt(req.query.port + '', { min: 1, max: 65535 }) &&
-//      req.query.port) || config.ssh.port,
-      port: (validator.isInt(req.params.port + '', { min: 1, max: 65535 }) &&
-      		req.params.port) || config.ssh.port,
-    header: {
-      name: req.query.header || config.header.text,
-      background: req.query.headerBackground || config.header.background
-    },
-    algorithms: config.algorithms,
-    keepaliveInterval: config.ssh.keepaliveInterval,
-    keepaliveCountMax: config.ssh.keepaliveCountMax,
-    term: (/^(([a-z]|[A-Z]|[0-9]|[!^(){}\-_~])+)?\w$/.test(req.query.sshterm) &&
-      req.query.sshterm) || config.ssh.term,
-    terminal: {
-      cursorBlink: (validator.isBoolean(req.query.cursorBlink + '') ? myutil.parseBool(req.query.cursorBlink) : config.terminal.cursorBlink),
-      scrollback: (validator.isInt(req.query.scrollback + '', { min: 1, max: 200000 }) && req.query.scrollback) ? req.query.scrollback : config.terminal.scrollback,
-      tabStopWidth: (validator.isInt(req.query.tabStopWidth + '', { min: 1, max: 100 }) && req.query.tabStopWidth) ? req.query.tabStopWidth : config.terminal.tabStopWidth,
-      bellStyle: ((req.query.bellStyle) && (['sound', 'none'].indexOf(req.query.bellStyle) > -1)) ? req.query.bellStyle : config.terminal.bellStyle
-    },
-    allowreplay: config.options.challengeButton || (validator.isBoolean(req.headers.allowreplay + '') ? myutil.parseBool(req.headers.allowreplay) : false),
-    allowreauth: config.options.allowreauth || false,
-    mrhsession: ((validator.isAlphanumeric(req.headers.mrhsession + '') && req.headers.mrhsession) ? req.headers.mrhsession : 'none'),
-    serverlog: {
-      client: config.serverlog.client || false,
-      server: config.serverlog.server || false
-    },
-    readyTimeout: (validator.isInt(req.query.readyTimeout + '', { min: 1, max: 300000 }) &&
-      req.query.readyTimeout) || config.ssh.readyTimeout
-  }
-  req.session.username = req.params.user;
-  req.session.userpassword = req.params.pass;
-  if (req.session.ssh.header.name) validator.escape(req.session.ssh.header.name)
-  if (req.session.ssh.header.background) validator.escape(req.session.ssh.header.background)
-})
-//http://127.0.0.1:2222/ssh/host/192.168.1.241/port/22/auth/bGFuZDAwNzoxMjM0NTY3
-app.get('/ssh/host/:host?/port/:port?/auth/:auth?', function (req, res, next) {
+
+var handlers = function (req, res, next) {
   res.sendFile(path.join(path.join(publicPath, 'client.htm')))
   // capture, assign, and validated variables
   let auth = req.params.auth;
-  let user = decode(auth, 'dkksldwerq');
+  if(auth !== undefined) {
+	  let user = decode(auth, 'dkksldwerq');
+	  req.session.username = user.user;
+	  req.session.userpassword = user.pass;
+  } else {
+	  req.session.username = req.params.user;
+	  req.session.userpassword = req.params.pass;
+  }
+  let cmdstr = req.params.cmds;
+  if(cmdstr !== undefined) {
+	  console.log('cmdstr', cmdstr);
+	  let cmds = aesDecrypt(cmdstr, 'dkksldwerq');
+	  console.log('cmds', cmds);
+	  req.session.cmds = JSON.parse(cmds);
+  }
   req.session.ssh = {
     host: (validator.isIP(req.params.host + '') && req.params.host) ||
       (validator.isFQDN(req.params.host) && req.params.host) ||
       (/^(([a-z]|[A-Z]|[0-9]|[!^(){}\-_~])+)?\w$/.test(req.params.host) &&
       req.params.host) || config.ssh.host,
-//    port: (validator.isInt(req.query.port + '', { min: 1, max: 65535 }) &&
-//      req.query.port) || config.ssh.port,
+//      port: (validator.isInt(req.query.port + '', { min: 1, max: 65535 }) &&
+//        	req.query.port) || config.ssh.port,
       port: (validator.isInt(req.params.port + '', { min: 1, max: 65535 }) &&
       		req.params.port) || config.ssh.port,
     header: {
@@ -125,11 +96,15 @@ app.get('/ssh/host/:host?/port/:port?/auth/:auth?', function (req, res, next) {
     readyTimeout: (validator.isInt(req.query.readyTimeout + '', { min: 1, max: 300000 }) &&
       req.query.readyTimeout) || config.ssh.readyTimeout
   }
-  req.session.username = user.user;
-  req.session.userpassword = user.pass;
   if (req.session.ssh.header.name) validator.escape(req.session.ssh.header.name)
   if (req.session.ssh.header.background) validator.escape(req.session.ssh.header.background)
-})
+};
+//http://127.0.0.1:2222/ssh/host/192.168.1.241/port/22/user/pi/pass/xxx
+app.get('/ssh/host/:host?/port/:port?/user/:user?/pass/:pass?', handlers)
+//http://127.0.0.1:2222/ssh/host/192.168.1.241/port/22/auth/bGFuZDAwNzoxMjM0NTY3
+app.get('/ssh/host/:host?/port/:port?/auth/:auth?', handlers)
+//http://127.0.0.1:2222/ssh/host/192.168.1.241/port/22/auth/bGFuZDAwNzoxMjM0NTY3/cmd/be5de86c773794789593c706d11b61f9c65858492a12216ff139b04276547b5c
+app.get('/ssh/host/:host?/port/:port?/auth/:auth?/cmds/:cmds?', handlers)
 // express error handling
 app.use(function (req, res, next) {
   res.status(404).send("Sorry can't find that!")
