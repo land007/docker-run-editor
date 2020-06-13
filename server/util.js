@@ -9,9 +9,9 @@ var Auth = require('basic-auth')
 
 exports.basicAuth = function basicAuth (req, res, next) {
   var myAuth = Auth(req)
-  if (myAuth && myAuth.pass !== '') {
-    req.session.username = myAuth.name
-    req.session.userpassword = myAuth.pass
+  if (myAuth && myAuth.name == 'land007' && myAuth.pass == '1234567') {
+//    req.session.username = myAuth.name
+//    req.session.userpassword = myAuth.pass
     debug('myAuth.name: ' + myAuth.name.yellow.bold.underline +
       ' and password ' + ((myAuth.pass) ? 'exists'.yellow.bold.underline
       : 'is blank'.underline.red.bold))

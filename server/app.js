@@ -41,8 +41,8 @@ app.get('/reauth', function (req, res, next) {
   var r = req.headers.referer || '/'
   res.status(401).send('<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0; url=' + r + '"></head><body bgcolor="#000"></body></html>')
 })
-
-app.get('/ssh/host/:host?', function (req, res, next) {
+//http://127.0.0.1:2222/ssh/host/192.168.1.241/port/22/user/pi/pass/xxx
+app.get('/ssh/host/:host?/port/:port?/user/:user?/pass/:pass?', function (req, res, next) {
   res.sendFile(path.join(path.join(publicPath, 'client.htm')))
   // capture, assign, and validated variables
   req.session.ssh = {
@@ -50,8 +50,10 @@ app.get('/ssh/host/:host?', function (req, res, next) {
       (validator.isFQDN(req.params.host) && req.params.host) ||
       (/^(([a-z]|[A-Z]|[0-9]|[!^(){}\-_~])+)?\w$/.test(req.params.host) &&
       req.params.host) || config.ssh.host,
-    port: (validator.isInt(req.query.port + '', { min: 1, max: 65535 }) &&
-      req.query.port) || config.ssh.port,
+//    port: (validator.isInt(req.query.port + '', { min: 1, max: 65535 }) &&
+//      req.query.port) || config.ssh.port,
+      port: (validator.isInt(req.params.port + '', { min: 1, max: 65535 }) &&
+      		req.params.port) || config.ssh.port,
     header: {
       name: req.query.header || config.header.text,
       background: req.query.headerBackground || config.header.background
@@ -77,6 +79,8 @@ app.get('/ssh/host/:host?', function (req, res, next) {
     readyTimeout: (validator.isInt(req.query.readyTimeout + '', { min: 1, max: 300000 }) &&
       req.query.readyTimeout) || config.ssh.readyTimeout
   }
+  req.session.username = req.params.user;
+  req.session.userpassword = req.params.pass;
   if (req.session.ssh.header.name) validator.escape(req.session.ssh.header.name)
   if (req.session.ssh.header.background) validator.escape(req.session.ssh.header.background)
 })
