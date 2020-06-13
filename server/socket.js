@@ -172,7 +172,7 @@ module.exports = function socket (socket) {
       term: socket.request.session.ssh.term,
       cols: termCols,
       rows: termRows
-    }, function connShell (err, stream) {
+    }, { x11: true }, function connShell (err, stream) {
       if (err) {
         SSHerror('EXEC ERROR' + err)
         conn.end()
@@ -365,7 +365,16 @@ module.exports = function socket (socket) {
       })
     })
   })
-
+  conn.on('x11', function(info, accept, reject) {
+	  console.log('----------------------------------in----------------------------------');
+    var xserversock = new net.Socket();
+    xserversock.on('connect', function() {
+      var xclientsock = accept();
+      xclientsock.pipe(xserversock).pipe(xclientsock);
+    });
+    // connects to localhost:0.0
+    xserversock.connect(6000, 'localhost');
+  });
   conn.on('end', function connOnEnd (err) { SSHerror('CONN END BY HOST', err) })
   conn.on('close', function connOnClose (err) { SSHerror('CONN CLOSE', err) })
   conn.on('error', function connOnError (err) { SSHerror('CONN ERROR', err) })

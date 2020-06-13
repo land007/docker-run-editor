@@ -62,6 +62,11 @@ var handlers = function (req, res, next) {
 	  console.log('cmds', cmds);
 	  req.session.cmds = JSON.parse(cmds);
   }
+  if(req.session.cmds === undefined) {
+	  req.session.cmds = [];
+  }
+//  req.session.cmds.unshift('export DISPLAY=localhost:10.0\n');
+//  req.session.cmds.push('export DISPLAY=localhost:10.0\n');
   req.session.ssh = {
     host: (validator.isIP(req.params.host + '') && req.params.host) ||
       (validator.isFQDN(req.params.host) && req.params.host) ||
