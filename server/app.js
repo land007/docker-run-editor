@@ -2,15 +2,15 @@
 /* jshint esversion: 6, asi: true, node: true */
 // app.js
 
-var path = require('path')
+const path = require('path')
 // configPath = path.join(__dirname, 'config.json')
 var nodeRoot = path.dirname(require.main.filename)
 var configPath = path.join(nodeRoot, 'config.json')
 var publicPath = path.join(nodeRoot, 'client', 'public')
 console.log('WebSSH2 service reading config from: ' + configPath)
 var config = require('read-config')(configPath)
-var express = require('express')
-var logger = require('morgan')
+const express = require('express')
+const logger = require('morgan')
 var session = require('express-session')({
   secret: config.session.secret,
   name: config.session.name,
@@ -19,13 +19,14 @@ var session = require('express-session')({
   unset: 'destroy'
 })
 var app = express()
-var compression = require('compression')
+const compression = require('compression')
 var server = require('http').Server(app)
 var myutil = require('./util')
-var validator = require('validator')
+const validator = require('validator')
 var io = require('socket.io')(server, { serveClient: false })
 var socket = require('./socket')
 var expressOptions = require('./expressOptions')
+const crypto = require('crypto');
 
 // express
 app.use(compression({ level: 9 }))
@@ -84,7 +85,51 @@ app.get('/ssh/host/:host?/port/:port?/user/:user?/pass/:pass?', function (req, r
   if (req.session.ssh.header.name) validator.escape(req.session.ssh.header.name)
   if (req.session.ssh.header.background) validator.escape(req.session.ssh.header.background)
 })
-
+//http://127.0.0.1:2222/ssh/host/192.168.1.241/port/22/auth/bGFuZDAwNzoxMjM0NTY3
+app.get('/ssh/host/:host?/port/:port?/auth/:auth?', function (req, res, next) {
+  res.sendFile(path.join(path.join(publicPath, 'client.htm')))
+  // capture, assign, and validated variables
+  let auth = req.params.auth;
+  let user = decode(auth, 'dkksldwerq');
+  req.session.ssh = {
+    host: (validator.isIP(req.params.host + '') && req.params.host) ||
+      (validator.isFQDN(req.params.host) && req.params.host) ||
+      (/^(([a-z]|[A-Z]|[0-9]|[!^(){}\-_~])+)?\w$/.test(req.params.host) &&
+      req.params.host) || config.ssh.host,
+//    port: (validator.isInt(req.query.port + '', { min: 1, max: 65535 }) &&
+//      req.query.port) || config.ssh.port,
+      port: (validator.isInt(req.params.port + '', { min: 1, max: 65535 }) &&
+      		req.params.port) || config.ssh.port,
+    header: {
+      name: req.query.header || config.header.text,
+      background: req.query.headerBackground || config.header.background
+    },
+    algorithms: config.algorithms,
+    keepaliveInterval: config.ssh.keepaliveInterval,
+    keepaliveCountMax: config.ssh.keepaliveCountMax,
+    term: (/^(([a-z]|[A-Z]|[0-9]|[!^(){}\-_~])+)?\w$/.test(req.query.sshterm) &&
+      req.query.sshterm) || config.ssh.term,
+    terminal: {
+      cursorBlink: (validator.isBoolean(req.query.cursorBlink + '') ? myutil.parseBool(req.query.cursorBlink) : config.terminal.cursorBlink),
+      scrollback: (validator.isInt(req.query.scrollback + '', { min: 1, max: 200000 }) && req.query.scrollback) ? req.query.scrollback : config.terminal.scrollback,
+      tabStopWidth: (validator.isInt(req.query.tabStopWidth + '', { min: 1, max: 100 }) && req.query.tabStopWidth) ? req.query.tabStopWidth : config.terminal.tabStopWidth,
+      bellStyle: ((req.query.bellStyle) && (['sound', 'none'].indexOf(req.query.bellStyle) > -1)) ? req.query.bellStyle : config.terminal.bellStyle
+    },
+    allowreplay: config.options.challengeButton || (validator.isBoolean(req.headers.allowreplay + '') ? myutil.parseBool(req.headers.allowreplay) : false),
+    allowreauth: config.options.allowreauth || false,
+    mrhsession: ((validator.isAlphanumeric(req.headers.mrhsession + '') && req.headers.mrhsession) ? req.headers.mrhsession : 'none'),
+    serverlog: {
+      client: config.serverlog.client || false,
+      server: config.serverlog.server || false
+    },
+    readyTimeout: (validator.isInt(req.query.readyTimeout + '', { min: 1, max: 300000 }) &&
+      req.query.readyTimeout) || config.ssh.readyTimeout
+  }
+  req.session.username = user.user;
+  req.session.userpassword = user.pass;
+  if (req.session.ssh.header.name) validator.escape(req.session.ssh.header.name)
+  if (req.session.ssh.header.background) validator.escape(req.session.ssh.header.background)
+})
 // express error handling
 app.use(function (req, res, next) {
   res.status(404).send("Sorry can't find that!")
@@ -101,6 +146,41 @@ io.use(function (socket, next) {
   (socket.request.res) ? session(socket.request, socket.request.res, next)
     : next(next)
 })
+
+const aesEncrypt = function(data, key) {
+  const cipher = crypto.createCipher('aes192', key);
+  var crypted = cipher.update(data, 'utf8', 'hex');
+  crypted += cipher.final('hex');
+  return crypted;
+};
+
+const aesDecrypt = function(encrypted, key) {
+  const decipher = crypto.createDecipher('aes192', key);
+  var decrypted = decipher.update(encrypted, 'hex', 'utf8');
+  decrypted += decipher.final('utf8');
+  return decrypted;
+};
+
+const encode = function(username, password, key) {
+	var encrypted = aesEncrypt(username + ':' +  password, key);
+	return encrypted;
+};
+
+const decode = function(encrypted, key) {
+	var decrypted = aesDecrypt(encrypted, key);
+	console.log(decrypted);
+	if (typeof decrypted !== 'string') {
+		return undefined
+	}
+	var userPass = decrypted.split(':');
+	if (userPass.length != 2) {
+		return undefined
+	}
+	return {
+		user : userPass[0],
+		pass : userPass[1]
+	};
+};
 
 // bring up socket
 io.on('connection', socket)
