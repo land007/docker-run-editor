@@ -158,7 +158,12 @@ require
 		});
 
 var editContent0 = '\
-#北京眼神科技集团-人脸识别部署系统\r\n';
+#使用方法\r\n\
+#（1）执行命令\r\n\
+#试一试：请双击ls前的的序号4\r\n\
+ls\r\n\
+#（2）上传文件\r\n\
+#试一试：点击右侧上传文件中的按钮\r\n';
 var editContent1 = '\
 #运行MySQL服务2\r\n\
 sudo docker kill eyecool-mysql; sudo docker rm eyecool-mysql; sudo docker run --restart=always -p 3306:3306 -v ~/docker/eyecool-mysql:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=1234567 -d --name eyecool-mysql registry.eyecool.cn:5080/mysql:5.7.22\r\n\
