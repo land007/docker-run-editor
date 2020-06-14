@@ -14343,23 +14343,23 @@ var JAUE = null;//JAUE.on("data", function(data) {})//socket
     se.on("allowreplay", function(t) {
         !0 === t ? (console.log("allowreplay: " + t),
         ce = !0,
-        Ce(de.innerHTML + '<a id="credentialsBtn"><i class="fas fa-key fa-fw"></i> Credentials</a>')) : (ce = !1,
+        Ce(de.innerHTML + '<a id="credentialsBtn"><i class="fas fa-key fa-fw"></i> 证书</a>')) : (ce = !1,
         console.log("allowreplay: " + t))
     }),
     se.on("allowreauth", function(t) {
         !0 === t ? (console.log("allowreauth: " + t),
         he = !0,
-        Ce(de.innerHTML + '<a id="reauthBtn"><i class="fas fa-key fa-fw"></i> Switch User</a>')) : (he = !1,
+        Ce(de.innerHTML + '<a id="reauthBtn"><i class="fas fa-key fa-fw"></i> 切换用户</a>')) : (he = !1,
         console.log("allowreauth: " + t))
     }),
     se.on("disconnect", function(t) {
         oe || (fe.style.backgroundColor = "red",
-        fe.innerHTML = "WEBSOCKET SERVER DISCONNECTED: " + t),
+        fe.innerHTML = "WEBSOCKET服务器已断开连接: " + t),
         se.io.reconnection(!1)
     }),
     se.on("error", function(t) {
         oe || (fe.style.backgroundColor = "red",
-        fe.innerHTML = "ERROR: " + t)
+        fe.innerHTML = "错误: " + t)
     }),
     se.on("reauth", function() {
         he && be()
