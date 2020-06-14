@@ -10,7 +10,23 @@ const net = require('net');
 const onvif = require('node-onvif');
 process.on('uncaughtException', function (err) {
     console.log(err);
-}); 
+});
+const os = require('os');
+const platform = os.platform();
+console.log(platform);
+const exec = require('child_process').execFile;
+
+//启动xming
+const xrun =function(){
+	console.log("xrun() start");
+	if(platform == 'win32') {
+		exec(__dirname + '\\Xming\\xming.exe', [':0', '-clipboard', '-multiwindow'], function(err, data) { 
+			console.log(err)
+			console.log(data.toString());                       
+		});
+	}
+};
+xrun();
 
 function scan(host, ports, callback) {
     let count = ports.length;
