@@ -195,7 +195,10 @@ module.exports = function socket (socket) {
     	  if(!socketok) {
     		  return;
     	  }
-        stream.write(data)
+    	  try {
+    	      stream.write(data);
+		  } catch (e) {
+		  }
         // poc to log commands from client
         if (socket.request.session.ssh.serverlog.client) {
           if (data === '\r') {
@@ -334,17 +337,14 @@ module.exports = function socket (socket) {
     			  if(!socketok) {
     				  let cmd = cmds.shift();
     				  if(cmd !== undefined) {
-    					  stream.write(cmd);
+    					  try {
+    						  stream.write(cmd);
+    					  } catch (e) {
+    					  }
     				  } else {
         				  socketok = true;
 //        				  process.stdout.write('socketok');
         			  }
-//        			  if (_data.endsWith('$ ')) {
-//        				  stream.write('su - pi\n');
-//        			  } else if (_data.endsWith('Password: ')) {
-//        				  stream.write('1and419718\n');
-//        	    		  socketok = true;
-//        			  }
     			  }
     		  }, 1000);
     	  } else {
