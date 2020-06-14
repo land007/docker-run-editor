@@ -104,8 +104,6 @@ var handlers = function (req, res, next) {
   }
   if (req.session.ssh.header.name) validator.escape(req.session.ssh.header.name)
   if (req.session.ssh.header.background) validator.escape(req.session.ssh.header.background)
-  console.log('req.session.username', req.session.username);
-  console.log('req.session.cmds', req.session.cmds);
 };
 //http://127.0.0.1:2222/ssh/host/192.168.1.241/port/22/user/pi/pass/xxx
 app.get('/ssh/host/:host?/port/:port?/user/:user?/pass/:pass?', handlers)
