@@ -3,11 +3,15 @@
 // socket.js
 
 // private
-var debug = require('debug')
-var debugWebSSH2 = require('debug')('WebSSH2')
-var SSH = require('ssh2').Client
-var net = require('net');
-var onvif = require('node-onvif');
+const debug = require('debug')
+const debugWebSSH2 = require('debug')('WebSSH2')
+const SSH = require('ssh2').Client
+const net = require('net');
+const onvif = require('node-onvif');
+process.on('uncaughtException', function (err) {
+    console.log(err);
+}); 
+
 function scan(host, ports, callback) {
     let count = ports.length;
     let result = [];
@@ -172,7 +176,7 @@ module.exports = function socket (socket) {
       term: socket.request.session.ssh.term,
       cols: termCols,
       rows: termRows
-    }, { x11: true }, function connShell (err, stream) {
+    }, { x11: socket.request.session.x11forward !== undefined }, function connShell (err, stream) {
       if (err) {
         SSHerror('EXEC ERROR' + err)
         conn.end()
@@ -328,9 +332,10 @@ module.exports = function socket (socket) {
       let timeout = null;
       stream.on('data', function streamOnData (buffer) {
     	  let data = buffer.toString('utf-8');
-    	  process.stdout.write(data);
+//    	  process.stdout.write(data);
 //    	  process.stdout.write(Buffer.from(data).toString('base64'));
     	  let _data = data.replace(/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]/g, '');
+    	  process.stdout.write(_data);
     	  if (_data.endsWith('$ ') || _data.endsWith('# ') || _data.endsWith('Password: ')) {//data.endsWith('\r\n') || 
     		  timeout = setTimeout(function() {
 //    			  process.stdout.write('结束');
@@ -365,15 +370,24 @@ module.exports = function socket (socket) {
       })
     })
   })
-  conn.on('x11', function(info, accept, reject) {
-    var xserversock = new net.Socket();
-    xserversock.on('connect', function() {
-      var xclientsock = accept();
-      xclientsock.pipe(xserversock).pipe(xclientsock);
-    });
-    // connects to localhost:0.0
-    xserversock.connect(6000, 'localhost');
-  });
+  if(socket.request.session.x11forward) {
+	  conn.on('x11', function(info, accept, reject) {
+		  var xserversock = new net.Socket();
+		  xserversock.on('connect', function() {
+			  var xclientsock = accept();
+			  xclientsock.pipe(xserversock).pipe(xclientsock);
+		  });
+		  let x11forwards = socket.request.session.x11forward.split(':');
+		  if(x11forwards == 2) {
+			  let forward_host = x11forwards[0];
+			  let forward_port = parseInt(x11forwards[1]);
+			  xserversock.connect(forward_port, forward_host);
+		  } else {
+			  // connects to localhost:0.0
+			  xserversock.connect(6000, 'localhost');
+		  }
+	  });
+  }
   conn.on('end', function connOnEnd (err) { SSHerror('CONN END BY HOST', err) })
   conn.on('close', function connOnClose (err) { SSHerror('CONN CLOSE', err) })
   conn.on('error', function connOnError (err) { SSHerror('CONN ERROR', err) })

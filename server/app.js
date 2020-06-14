@@ -56,6 +56,7 @@ var handlers = function (req, res, next) {
 	  req.session.username = req.params.user;
 	  req.session.userpassword = req.params.pass;
   }
+  req.session.x11forward = req.query.x11forward;
   let cmdstr = req.params.cmds;
   if(cmdstr !== undefined) {
 //	  console.log('cmdstr', cmdstr);
