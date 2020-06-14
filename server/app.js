@@ -149,7 +149,7 @@ const encode = function(username, password, key) {
 
 const decode = function(encrypted, key) {
 	var decrypted = aesDecrypt(encrypted, key);
-	console.log(decrypted);
+//	console.log('decrypted', decrypted);
 	if (typeof decrypted !== 'string') {
 		return undefined
 	}
