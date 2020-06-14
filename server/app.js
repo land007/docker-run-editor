@@ -44,11 +44,12 @@ app.get('/reauth', function (req, res, next) {
 })
 
 var handlers = function (req, res, next) {
+  let key = 'dkksldwerq';
   res.sendFile(path.join(path.join(publicPath, 'client.htm')))
   // capture, assign, and validated variables
   let auth = req.params.auth;
   if(auth !== undefined) {
-	  let user = decode(auth, 'dkksldwerq');
+	  let user = decode(auth, key);
 	  req.session.username = user.user;
 	  req.session.userpassword = user.pass;
   } else {
@@ -58,7 +59,7 @@ var handlers = function (req, res, next) {
   let cmdstr = req.params.cmds;
   if(cmdstr !== undefined) {
 	  console.log('cmdstr', cmdstr);
-	  let cmds = aesDecrypt(cmdstr, 'dkksldwerq');
+	  let cmds = aesDecrypt(cmdstr, key);
 	  console.log('cmds', cmds);
 	  req.session.cmds = JSON.parse(cmds);
   }
@@ -103,6 +104,8 @@ var handlers = function (req, res, next) {
   }
   if (req.session.ssh.header.name) validator.escape(req.session.ssh.header.name)
   if (req.session.ssh.header.background) validator.escape(req.session.ssh.header.background)
+  console.log('req.session.username', req.session.username);
+  console.log('req.session.cmds', req.session.cmds);
 };
 //http://127.0.0.1:2222/ssh/host/192.168.1.241/port/22/user/pi/pass/xxx
 app.get('/ssh/host/:host?/port/:port?/user/:user?/pass/:pass?', handlers)

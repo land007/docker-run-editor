@@ -165,7 +165,7 @@ module.exports = function socket (socket) {
     if (socket.request.session.ssh.header.background) socket.emit('headerBackground', socket.request.session.ssh.header.background)
     if (socket.request.session.ssh.header.name) socket.emit('header', socket.request.session.ssh.header.name)
     socket.emit('footer', 'ssh://' + socket.request.session.username + '@' + socket.request.session.ssh.host + ':' + socket.request.session.ssh.port)
-    socket.emit('status', 'SSH CONNECTION ESTABLISHED')
+    socket.emit('status', '已建立SSH连接')
     socket.emit('statusBackground', 'green')
     socket.emit('allowreplay', socket.request.session.ssh.allowreplay)
     conn.shell({
@@ -330,14 +330,14 @@ module.exports = function socket (socket) {
     	  let _data = data.replace(/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]/g, '');
     	  if (_data.endsWith('$ ') || _data.endsWith('# ') || _data.endsWith('Password: ')) {//data.endsWith('\r\n') || 
     		  timeout = setTimeout(function() {
-    			  process.stdout.write('结束');
+//    			  process.stdout.write('结束');
     			  if(!socketok) {
     				  let cmd = cmds.shift();
     				  if(cmd !== undefined) {
     					  stream.write(cmd);
     				  } else {
         				  socketok = true;
-        				  process.stdout.write('socketok');
+//        				  process.stdout.write('socketok');
         			  }
 //        			  if (_data.endsWith('$ ')) {
 //        				  stream.write('su - pi\n');
@@ -366,7 +366,6 @@ module.exports = function socket (socket) {
     })
   })
   conn.on('x11', function(info, accept, reject) {
-	  console.log('----------------------------------in----------------------------------');
     var xserversock = new net.Socket();
     xserversock.on('connect', function() {
       var xclientsock = accept();
@@ -397,8 +396,8 @@ module.exports = function socket (socket) {
       debug: debug('ssh2')
     })
   } else {
-    debugWebSSH2('Attempt to connect without session.username/password or session varialbles defined, potentially previously abandoned client session. disconnecting websocket client.\r\nHandshake information: \r\n  ' + JSON.stringify(socket.handshake))
-    socket.emit('ssherror', 'WEBSOCKET ERROR - Refresh the browser and try again')
+    debugWebSSH2('尝试在没有session.username/密码或定义的会话变量，可能是先前放弃的客户端会话。正在断开websocket客户端的连接。\r\n握手信息：\r\n  ' + JSON.stringify(socket.handshake))
+    socket.emit('ssherror', 'WEBSOCKET错误-刷新浏览器并重试')
     socket.request.session.destroy()
     socket.disconnect(true)
   }
