@@ -58,9 +58,9 @@ var handlers = function (req, res, next) {
   }
   let cmdstr = req.params.cmds;
   if(cmdstr !== undefined) {
-	  console.log('cmdstr', cmdstr);
+//	  console.log('cmdstr', cmdstr);
 	  let cmds = aesDecrypt(cmdstr, key);
-	  console.log('cmds', cmds);
+//	  console.log('cmds', cmds);
 	  req.session.cmds = JSON.parse(cmds);
   }
   if(req.session.cmds === undefined) {
