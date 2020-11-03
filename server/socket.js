@@ -351,6 +351,7 @@ module.exports = function socket (socket) {
 //    	  process.stdout.write(data);
 //    	  process.stdout.write(Buffer.from(data).toString('base64'));
     	  let _data = data.replace(/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]/g, '');
+//    	  process.stdout.write(socket.request.session.ssh.host + _data);
     	  process.stdout.write(_data);
     	  if (_data.endsWith('$ ') || _data.endsWith('# ') || _data.endsWith('Password: ')) {//data.endsWith('\r\n') || 
     		  timeout = setTimeout(function() {
